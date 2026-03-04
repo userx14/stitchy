@@ -50,26 +50,31 @@ polyAndPaths = seperateIntoLayerAndDtypes(polygons)
 def getIsodoseCoords(mindose, maxdose):
     print(f"mindose, maxdose {mindose}, {maxdose}")
     cornerSteps = 5
-    boundaryThickness = writefieldSize*(writefieldScaler-1)*0.5
+    boundaryThickness = writefieldSize*(writefieldScaler-1)
     minDoseDist = boundaryThickness*np.arccos(2*mindose-1)/np.pi
     maxDoseDist = boundaryThickness*np.arccos(2*maxdose-1)/np.pi
-    print(minDoseDist)
-    print(maxDoseDist)
+    print(np.arccos(2*mindose-1)/np.pi)
+    print(np.arccos(2*maxdose-1)/np.pi)
     cornerPoints = np.array([[1,1], [1,-1], [-1,-1], [-1,1]])
     coords = []
     for cornerIdx, corner in enumerate(cornerPoints):
         for cornerAngle in np.linspace(0,np.pi/2,cornerSteps)+cornerIdx*np.pi/2:
             point2d = minDoseDist * np.array([np.sin(cornerAngle), np.cos(cornerAngle)])
             point2d += corner*writefieldSize*0.5
+            point2d -= corner*boundaryThickness*0.5
             coords.append(point2d)
     if maxDoseDist > 1e-5:
+        #add line to connect inside with outside path
         coords.append(coords[0].copy())
         coords.append(coords[0].copy())
         coords[-1][1] = maxDoseDist+writefieldSize*0.5
+        coords[-1][1] -= boundaryThickness*0.5
+        
         for cornerIdx, corner in enumerate(cornerPoints[::-1]):
             for cornerAngle in np.linspace(0,np.pi/2,cornerSteps)[::-1]+(3-cornerIdx)*np.pi/2:
                 point2d = maxDoseDist * np.array([np.sin(cornerAngle), np.cos(cornerAngle)])
                 point2d += corner*writefieldSize*0.5
+                point2d -= corner*boundaryThickness*0.5
                 coords.append(point2d)
     return coords
 
